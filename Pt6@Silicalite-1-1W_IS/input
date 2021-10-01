@@ -1,0 +1,173 @@
+&FORCE_EVAL
+   METHOD Quickstep
+   &DFT
+    LSD
+    BASIS_SET_FILE_NAME /public/home/*/cp2k/BASIS
+    POTENTIAL_FILE_NAME /public/home/*/cp2k/GTH_POTENTIALS
+#     WFN_RESTART_FILE_NAME ./SSZ13-RESTART.wfn
+#    CHARGE +1
+    &MGRID
+      CUTOFF 360
+    &END MGRID
+    &QS
+      WF_INTERPOLATION ASPC
+      EXTRAPOLATION_ORDER 2
+    &END QS
+    &SCF
+     EPS_SCF 1.E-6
+     SCF_GUESS RESTART
+     MAX_SCF 1000
+     &OT T
+       PRECONDITIONER FULL_ALL
+#        MINIMIZER CG
+        MINIMIZER BROYDEN
+        BROYDEN_SIGMA 0.1
+       BROYDEN_BETA 0.7 
+       N_DIIS 4
+       LINESEARCH 3PNT
+     &END OT
+    &END SCF
+    &XC
+      &XC_FUNCTIONAL PBE
+      &END XC_FUNCTIONAL
+     &VDW_POTENTIAL
+        DISPERSION_FUNCTIONAL PAIR_POTENTIAL
+        &PAIR_POTENTIAL
+           TYPE DFTD3
+           REFERENCE_FUNCTIONAL PBE
+           PARAMETER_FILE_NAME /public/home/*/cp2k/dftd3.dat
+           R_CUTOFF 4.0
+        &END PAIR_POTENTIAL
+      &END VDW_POTENTIAL 
+    &END XC
+#    &PRINT
+#     &MULLIKEN
+#     &END MULLIKEN  
+#    &END PRINT
+   &END DFT
+   
+  &SUBSYS
+    &CELL
+      ABC    10.000   10.000   10.000
+      ALPHA_BETA_GAMMA  90.0000   90.0000   90.0000
+	  PERIODIC XYZ
+    &END CELL
+	
+	&TOPOLOGY
+      CONNECTIVITY  OFF
+      COORD_FILE ./1.xyz
+      COORDINATE XYZ
+    &END TOPOLOGY    
+	
+    &KIND Si
+      BASIS_SET DZVP-MOLOPT-SR-GTH-q4
+      POTENTIAL GTH-PBE-q4
+    &END KIND    
+    &KIND O
+      BASIS_SET DZVP-MOLOPT-SR-GTH-q6
+      POTENTIAL GTH-PBE-q6
+    &END KIND
+    &KIND H
+      BASIS_SET DZVP-MOLOPT-SR-GTH-q1
+      POTENTIAL GTH-PBE-q1
+    &END KIND  
+    &KIND C
+      BASIS_SET DZVP-MOLOPT-SR-GTH-q4
+      POTENTIAL GTH-PBE-q4
+    &END KIND  
+    &KIND Pt
+      BASIS_SET DZVP-MOLOPT-SR-GTH-q18
+      POTENTIAL GTH-PBE-q18
+    &END KIND          
+    &KIND Al
+      BASIS_SET DZVP-MOLOPT-SR-GTH-q3
+      POTENTIAL GTH-PBE-q3
+    &END KIND	    
+    &END SUBSYS
+&END FORCE_EVAL    
+#&EXT_RESTART
+#RESTART_FILE_NAME ./SSZ13-1.restart
+#RESTART_POS T
+#RESTART_VEL T
+#&END EXT_RESTART
+&GLOBAL
+  PROJECT SSZ13
+    RUN_TYPE GEO_OPT
+#   RUN_TYPE ENERGY	
+#   RUN_TYPE BAND
+  PRINT_LEVEL LOW
+&END GLOBAL
+&MOTION 
+    &MD
+    ENSEMBLE NVT
+    STEPS 40000
+    TIMESTEP 0.5
+    TEMPERATURE 298.0
+#   ANNEALING 0.999 
+    &THERMOSTAT
+      TYPE NOSE
+      REGION GLOBAL 
+      &NOSE
+        TIMECON [wavenumber_t] 2000
+      &END NOSE
+    &END THERMOSTAT
+   &END MD
+  &GEO_OPT
+    MAX_ITER 20000
+    OPTIMIZER BFGS
+  &END GEO_OPT
+  &BAND                         
+    NPROC_REP 64                
+    BAND_TYPE CI-NEB            
+    NUMBER_OF_REPLICA 7         
+    K_SPRING 0.10               
+    &CONVERGENCE_CONTROL        
+      MAX_DR 0.01               
+      MAX_FORCE 0.002           
+      RMS_DR 0.02               
+      RMS_FORCE 0.001           
+    &END                        
+    ROTATE_FRAMES F             
+    &CI_NEB                     
+       NSTEPS_IT  5             
+    &END                        
+    &OPTIMIZE_BAND              
+      OPT_TYPE MD               
+      OPTIMIZE_END_POINTS F     
+      &MD                       
+       TIMESTEP 0.5             
+       TEMPERATURE 298.0         
+       MAX_STEPS 1000            
+       &VEL_CONTROL             
+         ANNEALING 0.96         
+         PROJ_VELOCITY_VERLET T 
+       &END                     
+     &END                       
+   &END                         
+    &REPLICA                    
+      COORD_FILE_NAME  ./1.xyz  
+    &END                        
+    &REPLICA                    
+      COORD_FILE_NAME  ./2.xyz  
+    &END                        
+    &REPLICA                    
+      COORD_FILE_NAME  ./3.xyz  
+    &END                        
+    &REPLICA                    
+      COORD_FILE_NAME  ./4.xyz  
+    &END                        
+    &REPLICA                    
+      COORD_FILE_NAME  ./5.xyz  
+    &END                        
+    &REPLICA                    
+      COORD_FILE_NAME  ./6.xyz  
+    &END      
+    &REPLICA                    
+      COORD_FILE_NAME  ./7.xyz  
+    &END                            
+    &PROGRAM_RUN_INFO           
+    &END                        
+    &CONVERGENCE_INFO           
+    &END                        
+  &END BAND 
+&END MOTION
